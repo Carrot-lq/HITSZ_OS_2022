@@ -104,6 +104,8 @@ extern uint64 sys_unlink(void);
 extern uint64 sys_wait(void);
 extern uint64 sys_write(void);
 extern uint64 sys_uptime(void);
+extern uint64 sys_trace(void);  // lab2
+extern uint64 sys_info(void);  // lab2
 
 static uint64 (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -127,6 +129,34 @@ static uint64 (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_trace]   sys_trace,  // lab2
+[SYS_sysinfo] sys_info  // lab2
+};
+
+char* syscall_name[SYS_CALL_AMOUNT] = {
+  "sys_fork",
+  "sys_exit",
+  "sys_wait",
+  "sys_pipe",
+  "sys_read",
+  "sys_kill",
+  "sys_exec",
+  "sys_fstat",
+  "sys_chdir",
+  "sys_dup",
+  "sys_getpid",
+  "sys_sbrk",
+  "sys_sleep",
+  "sys_uptime",
+  "sys_open",
+  "sys_write",
+  "sys_mknod",
+  "sys_unlink",
+  "sys_link",
+  "sys_mkdir",
+  "sys_close",
+  "sys_trace",
+  "sys_info"
 };
 
 void
@@ -137,7 +167,19 @@ syscall(void)
 
   num = p->trapframe->a7;
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
+    // lab2 trace 获取第一个参数
+    int arg;
+    argint(0, &arg);
+  
     p->trapframe->a0 = syscalls[num]();
+    
+    int mask = p->mask;
+    // 判断mask的系统调用对应位是否为1
+    if(mask & 1<<num){
+      // 打印信息
+      printf("%d: %s(%d) -> %d\n", p->pid, syscall_name[num-1], arg, p->trapframe->a0); 
+    }
+    
   } else {
     printf("%d %s: unknown sys call %d\n",
             p->pid, p->name, num);

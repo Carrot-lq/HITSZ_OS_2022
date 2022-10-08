@@ -276,7 +276,9 @@ fork(void)
   np->sz = p->sz;
 
   np->parent = p;
-
+  
+  np->mask = p->mask;  // lab2 继承参数mask
+  
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
 
@@ -692,4 +694,35 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+// lab2 
+// 计算空闲进程数量
+int check_nproc(void)
+{
+  struct proc *p;
+  int num = 0;
+  for(p = proc; p < &proc[NPROC]; p++)
+  {
+    if(p->state == UNUSED)
+      num++;
+  }
+
+  return num;
+}
+
+
+// lab2
+// 计算可用文件描述符数量
+int check_freefd(void)
+{
+  struct proc *p = myproc();
+  int i;
+  int num = 0;
+
+  for(i = 0; i < NOFILE; i++)
+    if(!p->ofile[i])
+      num++;
+  
+  return num;
 }
