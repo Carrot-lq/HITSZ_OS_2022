@@ -133,6 +133,7 @@ static uint64 (*syscalls[])(void) = {
 [SYS_sysinfo] sys_info  // lab2
 };
 
+// lab2 所有系统调用函数名
 char* syscall_name[SYS_CALL_AMOUNT] = {
   "sys_fork",
   "sys_exit",
