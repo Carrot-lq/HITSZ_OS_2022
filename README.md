@@ -87,7 +87,7 @@ entry("sysinfo");  # lab2
 
 #### proc.h
 
-为PCB结构体proc添加参数mask
+为PCB结构体 ``proc`` 添加参数 ``mask``
 
 ```c
 // Per-process state
@@ -112,15 +112,40 @@ static uint64 (*syscalls[])(void) = {
 [SYS_trace]   sys_trace,  // lab2
 [SYS_sysinfo] sys_info  // lab2
 };
+```
 
+添加所有函数名数组，用于 ``trace`` 打印
+
+```c
+// lab2 所有系统调用函数名
 char* syscall_name[SYS_CALL_AMOUNT] = {
-...
+  "sys_fork",
+  "sys_exit",
+  "sys_wait",
+  "sys_pipe",
+  "sys_read",
+  "sys_kill",
+  "sys_exec",
+  "sys_fstat",
+  "sys_chdir",
+  "sys_dup",
+  "sys_getpid",
+  "sys_sbrk",
+  "sys_sleep",
+  "sys_uptime",
+  "sys_open",
+  "sys_write",
+  "sys_mknod",
+  "sys_unlink",
+  "sys_link",
+  "sys_mkdir",
+  "sys_close",
   "sys_trace",
   "sys_info"
 };
 ```
 
-修改syscall，实现打印信息
+修改 ``syscall`` ，实现打印信息
 
 ```c
 void
@@ -239,6 +264,8 @@ int             check_freefd(void);        // lab2 sysinfo
 添加 ``sys_trace`` 与 ``sys_info`` 的实现
 
 ```c
+#include "sysinfo.h"  // lab2 struct sysinfo
+...
 // lab2 
 // 系统调用trace
 // 设置待追踪的系统调用位
