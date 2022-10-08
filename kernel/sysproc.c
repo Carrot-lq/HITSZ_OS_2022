@@ -99,6 +99,7 @@ sys_uptime(void)
 
 // lab2 
 // 系统调用trace
+// 设置待追踪的系统调用位
 uint64 sys_trace(void)
 {
     int mask;

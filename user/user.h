@@ -24,8 +24,8 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-int trace(int mask);  // lab2 system call
-int sysinfo(struct sysinfo*);  // lab2 system call
+int trace(int mask);  // lab2
+int sysinfo(struct sysinfo*);  // lab2
 
 // ulib.c
 int stat(const char*, struct stat*);

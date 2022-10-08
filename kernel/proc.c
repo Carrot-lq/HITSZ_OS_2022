@@ -696,8 +696,9 @@ procdump(void)
   }
 }
 
-// lab2 
+// lab2 sysinfo
 // 计算空闲进程数量
+// 统计状态为UNUSED的进程数量即为所求
 int check_nproc(void)
 {
   struct proc *p;
@@ -712,8 +713,9 @@ int check_nproc(void)
 }
 
 
-// lab2
+// lab2 sysinfo
 // 计算可用文件描述符数量
+// 统计PCB成员ofile中为0的下标，即是空闲文件描述符
 int check_freefd(void)
 {
   struct proc *p = myproc();

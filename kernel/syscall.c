@@ -167,7 +167,8 @@ syscall(void)
 
   num = p->trapframe->a7;
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
-    // lab2 trace 获取第一个参数
+    // lab2 修改系统调用syscall实现trace打印信息
+    // 获取第一个参数
     int arg;
     argint(0, &arg);
   

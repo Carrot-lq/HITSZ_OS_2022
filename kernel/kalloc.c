@@ -81,8 +81,9 @@ kalloc(void)
   return (void*)r;
 }
 
-// lab2 
+// lab2 sysinfo
 // 计算剩余的内存空间
+// 统计freelist长度，乘以PGSIZE即为空闲内存空间大小
 int check_freemem(void)
 {
   struct run *r;
