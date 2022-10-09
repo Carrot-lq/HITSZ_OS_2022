@@ -87,10 +87,10 @@ kalloc(void)
 int check_freemem(void)
 {
   struct run *r;
-
+  int freelist_num = 0;
+  
   acquire(&kmem.lock);
   r = kmem.freelist;
-  int freelist_num = 0;
   while(r)
   {
     r = r -> next;

@@ -701,15 +701,15 @@ procdump(void)
 // 统计状态为UNUSED的进程数量即为所求
 int check_nproc(void)
 {
-  struct proc *p;
-  int num = 0;
-  for(p = proc; p < &proc[NPROC]; p++)
+  int nproc_num = 0;
+  
+  for(int i=0;i<NPROC;i++)
   {
-    if(p->state == UNUSED)
-      num++;
+    if(proc[i].state == UNUSED)
+      nproc_num++;
   }
 
-  return num;
+  return nproc_num;
 }
 
 
@@ -719,12 +719,13 @@ int check_nproc(void)
 int check_freefd(void)
 {
   struct proc *p = myproc();
-  int i;
-  int num = 0;
+  int freefd_num = 0;
 
-  for(i = 0; i < NOFILE; i++)
-    if(!p->ofile[i])
-      num++;
-  
-  return num;
+  for(int i=0;i<NOFILE;i++){
+    if(!p->ofile[i]){
+      freefd_num++;
+    }
+  }
+    
+  return freefd_num;
 }

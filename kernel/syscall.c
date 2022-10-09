@@ -105,7 +105,7 @@ extern uint64 sys_wait(void);
 extern uint64 sys_write(void);
 extern uint64 sys_uptime(void);
 extern uint64 sys_trace(void);  // lab2
-extern uint64 sys_info(void);  // lab2
+extern uint64 sys_sysinfo(void);  // lab2
 
 static uint64 (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -130,11 +130,11 @@ static uint64 (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 [SYS_trace]   sys_trace,  // lab2
-[SYS_sysinfo] sys_info  // lab2
+[SYS_sysinfo] sys_sysinfo  // lab2
 };
 
 // lab2 所有系统调用函数名
-char* syscall_name[SYS_CALL_AMOUNT] = {
+char* syscall_name[SYSCALL_TOTAL_AMOUNT] = {
   "sys_fork",
   "sys_exit",
   "sys_wait",
@@ -157,7 +157,7 @@ char* syscall_name[SYS_CALL_AMOUNT] = {
   "sys_mkdir",
   "sys_close",
   "sys_trace",
-  "sys_info"
+  "sys_sysinfo"
 };
 
 void
@@ -170,16 +170,16 @@ syscall(void)
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     // lab2 修改系统调用syscall实现trace打印信息
     // 获取第一个参数
-    int arg;
-    argint(0, &arg);
-  
+    int arg0;
+    argint(0, &arg0);
+    
     p->trapframe->a0 = syscalls[num]();
     
-    int mask = p->mask;
     // 判断mask的系统调用对应位是否为1
-    if(mask & 1<<num){
-      // 打印信息
-      printf("%d: %s(%d) -> %d\n", p->pid, syscall_name[num-1], arg, p->trapframe->a0); 
+    if(p->mask & 1<<num){
+      // 打印信息，格式
+      //PID: sys_$name(arg0) -> return_value
+      printf("%d: %s(%d) -> %d\n", p->pid, syscall_name[num-1], arg0, p->trapframe->a0); 
     }
     
   } else {
