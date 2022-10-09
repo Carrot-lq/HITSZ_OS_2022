@@ -22,4 +22,4 @@
 #define SYS_close  21
 #define SYS_trace  22  // lab2
 #define SYS_sysinfo 23  //lab2
-#define SYS_CALL_AMOUNT 23
+#define SYSCALL_TOTAL_AMOUNT 23

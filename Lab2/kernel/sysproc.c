@@ -117,20 +117,20 @@ uint64 sys_trace(void)
 // lab2
 // 系统调用sysinfo
 // 打印进程相关信息
-uint64 sys_info(void)
+uint64 sys_sysinfo(void)
 {
   uint64 sysinfo_addr;
   // 获取*sysinfo参数失败，返回-1
   if(argaddr(0, &sysinfo_addr)<0){
     return -1;
   }
-  
-  struct proc *p = myproc();
+  //收集sysinfo
   struct sysinfo info;
   info.freemem = check_freemem();  // 剩余内存空间
   info.nproc = check_nproc();  // 剩余空闲进程数量
   info.freefd = check_freefd();  // 剩余可用文件描述符
   // 将数据拷贝至用户空间
+  struct proc *p = myproc();
   if(copyout(p->pagetable, sysinfo_addr, (char *)&info, sizeof(info)) < 0){
     return -1;
   }
