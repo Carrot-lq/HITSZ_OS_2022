@@ -715,7 +715,7 @@ int check_nproc(void)
 
 // lab2 sysinfo
 // 计算可用文件描述符数量
-// 统计PCB成员ofile中为0的下标，即是空闲文件描述符
+// 统计PCB成员ofile中为空的下标，即是空闲文件描述符
 int check_freefd(void)
 {
   struct proc *p = myproc();
