@@ -22,6 +22,7 @@ static void freeproc(struct proc *p);
 extern char trampoline[]; // trampoline.S
 
 // initialize the proc table at boot time.
+// lab4 task2 修改procinit
 void
 procinit(void)
 {
@@ -37,6 +38,11 @@ procinit(void)
       char *pa = kalloc();
       if(pa == 0)
         panic("kalloc");
+      // lab4 task2
+      // 内核栈物理地址存储到PCB
+      p->kstack_pa = (uint64)pa;
+      // 保留内核栈在全局页表kernel_pagetable的映射
+      // 在allocproc()中再把内核栈映射到进程的独立内核页表里
       uint64 va = KSTACK((int) (p - proc));
       kvmmap(va, (uint64)pa, PGSIZE, PTE_R | PTE_W);
       p->kstack = va;
@@ -89,6 +95,7 @@ allocpid() {
 // If found, initialize state required to run in the kernel,
 // and return with p->lock held.
 // If there are no free procs, or a memory allocation fails, return 0.
+//lab4 task2 修改allocproc
 static struct proc*
 allocproc(void)
 {
@@ -120,7 +127,18 @@ found:
     release(&p->lock);
     return 0;
   }
-
+  
+  // lab4 task2 
+  // 初始化进程的独立内核页表
+  p->k_pagetable = (pagetable_t)proc_kvminit();
+  if(p->k_pagetable == 0){
+    freeproc(p);
+    release(&p->lock);
+    return 0;
+  }
+  // 将p的内核栈虚拟地址映射到独立内核页表
+  proc_kvmmap(p->k_pagetable, p->kstack, p->kstack_pa, PGSIZE, PTE_R | PTE_W);
+  
   // Set up new context to start executing at forkret,
   // which returns to user space.
   memset(&p->context, 0, sizeof(p->context));
@@ -133,6 +151,7 @@ found:
 // free a proc structure and the data hanging from it,
 // including user pages.
 // p->lock must be held.
+// lab4 task2 修改freeproc
 static void
 freeproc(struct proc *p)
 {
@@ -142,6 +161,11 @@ freeproc(struct proc *p)
   if(p->pagetable)
     proc_freepagetable(p->pagetable, p->sz);
   p->pagetable = 0;
+  // lab4 task2 
+  // 释放独立内核页表
+  if(p->k_pagetable)
+    proc_freewalk(p->k_pagetable);
+  p->k_pagetable = 0;
   p->sz = 0;
   p->pid = 0;
   p->parent = 0;
@@ -208,6 +232,7 @@ uchar initcode[] = {
 };
 
 // Set up first user process.
+// lab4 task3 修改userinit
 void
 userinit(void)
 {
@@ -220,7 +245,10 @@ userinit(void)
   // and data into it.
   uvminit(p->pagetable, initcode, sizeof(initcode));
   p->sz = PGSIZE;
-
+  
+  // lab4 task3 初始化时需要复制用户页表到内核页表
+  vmcopypage(p->pagetable, p->k_pagetable, 0, p->sz);
+  
   // prepare for the very first "return" from kernel to user.
   p->trapframe->epc = 0;      // user program counter
   p->trapframe->sp = PGSIZE;  // user stack pointer
@@ -235,19 +263,32 @@ userinit(void)
 
 // Grow or shrink user memory by n bytes.
 // Return 0 on success, -1 on failure.
+// lab4 task3 修改growproc
 int
 growproc(int n)
 {
   uint sz;
   struct proc *p = myproc();
-
+  
   sz = p->sz;
+  
+  // 限制内存范围
+  if(sz + n >= PLIC)
+    return -1;
+    
   if(n > 0){
     if((sz = uvmalloc(p->pagetable, sz, sz + n)) == 0) {
       return -1;
     }
+    // 内存增加时复制该部分
+    vmcopypage(p->pagetable, p->k_pagetable, sz - n, n);
   } else if(n < 0){
     sz = uvmdealloc(p->pagetable, sz, sz + n);
+    
+    // 内存减少时解除映射
+    for(uint64 j=PGROUNDUP(sz); j<PGROUNDUP(sz-n);j+=PGSIZE){
+      uvmunmap(p->k_pagetable, j, 1, 0);
+    }
   }
   p->sz = sz;
   return 0;
@@ -255,6 +296,7 @@ growproc(int n)
 
 // Create a new process, copying the parent.
 // Sets up child kernel stack to return as if from fork() system call.
+// lab4 task 修改fork
 int
 fork(void)
 {
@@ -295,6 +337,9 @@ fork(void)
 
   np->state = RUNNABLE;
 
+  // lab4 task3 将子进程的页表复制到内核页表上
+  vmcopypage(np->pagetable, np->k_pagetable, 0, np->sz);
+  
   release(&np->lock);
 
   return pid;
@@ -453,6 +498,7 @@ wait(uint64 addr)
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
+// lab4 task2 修改scheduler
 void
 scheduler(void)
 {
@@ -473,8 +519,12 @@ scheduler(void)
         // before jumping back to us.
         p->state = RUNNING;
         c->proc = p;
+        // lab4 task2 
+        // 调入进程的页表
+        proc_kvminithart(p->k_pagetable);
         swtch(&c->context, &p->context);
-
+        // 进程结束后切换回内核页表
+        kvminithart();
         // Process is done running for now.
         // It should have changed its p->state before coming back.
         c->proc = 0; // cpu dosen't run any process now

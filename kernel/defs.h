@@ -159,9 +159,12 @@ int             uartgetc(void);
 
 // vm.c
 void            kvminit(void);
+pagetable_t     proc_kvminit(void);// lab4 task2 进程独立内核页表初始化
 void            kvminithart(void);
+void            proc_kvminithart(pagetable_t);// lab4 task2 切换到进程的独立内核页表
 uint64          kvmpa(uint64);
 void            kvmmap(uint64, uint64, uint64, int);
+void            proc_kvmmap(pagetable_t, uint64, uint64, uint64, int);// lab4 task2
 int             mappages(pagetable_t, uint64, uint64, uint64, int);
 pagetable_t     uvmcreate(void);
 void            uvminit(pagetable_t, uchar *, uint);
@@ -179,6 +182,13 @@ int             copyout(pagetable_t, uint64, char *, uint64);
 int             copyin(pagetable_t, char *, uint64, uint64);
 int             copyinstr(pagetable_t, char *, uint64, uint64);
 int             test_pagetable();
+void            proc_freewalk(pagetable_t);// lab4 task2 释放页表但不释放叶子页表指向的物理页帧
+void            vmprint(pagetable_t);// lab4 task1 打印页表
+void            vmcopypage(pagetable_t, pagetable_t, uint64, uint64);// lab4 task3 将进程的用户页表复制到内核页表
+// lab4 task3 
+// vmcopyin.c
+int             copyin_new(pagetable_t, char *, uint64, uint64);
+int             copyinstr_new(pagetable_t, char *, uint64, uint64);
 
 // plic.c
 void            plicinit(void);
